@@ -23,8 +23,31 @@ let weatherTool = FunctionTool(
         "required": .array([.string("city")])
     ])
 ) { arguments in
-    let city = arguments.trimmingCharacters(in: .whitespacesAndNewlines)
-    return "The weather in \(city.isEmpty ? "Tokyo" : city) is sunny, 25°C."
+    struct Args: Decodable { let city: String }
+    let city: String
+    if let data = arguments.data(using: .utf8),
+       let decoded = try? JSONDecoder().decode(Args.self, from: data) {
+        city = decoded.city
+    } else {
+        city = arguments.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    let encodedCity = city.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? city
+    guard let url = URL(string: "https://wttr.in/\(encodedCity)?format=3") else {
+        return "Invalid city name."
+    }
+    
+    do {
+        var request = URLRequest(url: url)
+        request.setValue("AgentKit-Demo/1.0", forHTTPHeaderField: "User-Agent")
+        let (data, _) = try await URLSession.shared.data(for: request)
+        if let result = String(data: data, encoding: .utf8), !result.isEmpty {
+            return result.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return "Weather data not available."
+    } catch {
+        return "Failed to fetch weather: \(error.localizedDescription)"
+    }
 }
 
 // MARK: - Step 2: Create a Custom Skill
