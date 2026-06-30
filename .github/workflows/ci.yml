@@ -24,11 +24,9 @@ jobs:
     runs-on: macos-15
     steps:
     - uses: actions/checkout@v4
-    - name: Select Xcode
-      run: sudo xcode-select -s /Applications/Xcode_16.0.app
     - name: Build iOS Demo
       run: |
         xcodebuild -project Examples/iOS/AgentKit-iOSDemo/AgentKit-iOSDemo.xcodeproj \
         -scheme AgentKit-iOSDemo \
-        -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
+        -destination "generic/platform=iOS Simulator" \
         build
