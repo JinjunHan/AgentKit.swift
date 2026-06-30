@@ -112,6 +112,9 @@ public final class ChatViewModel: ObservableObject {
     private var activeAgent: Agent?
     private var tracingPlugin: TracingPlugin?
     
+    /// The persistent memory store to maintain conversation history across agent rebuilds.
+    private let memoryStore = InMemoryMemoryStore()
+    
     /// A custom URLSession that routes through our NetworkLoggerProtocol for robust debugging.
     private let urlSession: URLSession = {
         let config = URLSessionConfiguration.default
@@ -216,6 +219,7 @@ public final class ChatViewModel: ObservableObject {
                 .systemPrompt(systemPrompt)
                 .tool(weatherTool)
                 .streaming(streamingEnabled)
+                .memoryStore(memoryStore)
 
             if tracingEnabled {
                 builder = builder.plugin(tracing)
